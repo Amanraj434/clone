@@ -3,7 +3,10 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Use relative path in production so it hits the Vercel serverless /api route
+const API = import.meta.env.PROD 
+  ? '' 
+  : (import.meta.env.VITE_API_URL || 'http://localhost:5000');
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser]   = useState(null);
