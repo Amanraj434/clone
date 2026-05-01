@@ -16,6 +16,9 @@ export default function Register() {
 
   const handleSubmit = async e => {
     e.preventDefault();
+    if (!form.gender) { setError('Please select your gender'); return; }
+    if (!form.year)   { setError('Please select your year');   return; }
+    if (!form.branch) { setError('Please select your branch'); return; }
     setError(''); setLoading(true);
     try {
       await register({ ...form, year: Number(form.year) });
