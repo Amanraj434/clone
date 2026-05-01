@@ -1,51 +1,49 @@
-import { useState } from 'react'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Navbar       from './components/Navbar';
+import Login        from './pages/Login';
+import Register     from './pages/Register';
+import ProfileSetup from './pages/ProfileSetup';
+import Swipe        from './pages/Swipe';
+import Matches      from './pages/Matches';
+import Chat         from './pages/Chat';
+import Settings     from './pages/Settings';
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  const increment = () => setCount(c => c + 1)
-  const decrement = () => setCount(c => c - 1)
-  const reset = () => setCount(0)
-
-  const getCountColor = () => {
-    if (count > 0) return '#4ade80'
-    if (count < 0) return '#f87171'
-    return '#a78bfa'
-  }
-
-  return (
-    <div className="app">
-      <div className="card">
-        <h1 className="title">Counter</h1>
-        <p className="subtitle">Click the buttons to change the count</p>
-
-        <div className="count-display" style={{ color: getCountColor() }}>
-          <span className="count-value">{count}</span>
-        </div>
-
-        <div className="controls">
-          <button className="btn btn-decrement" onClick={decrement} id="btn-decrement">
-            −
-          </button>
-          <button className="btn btn-reset" onClick={reset} id="btn-reset">
-            Reset
-          </button>
-          <button className="btn btn-increment" onClick={increment} id="btn-increment">
-            +
-          </button>
-        </div>
-
-        <p className="hint">
-          {count === 0
-            ? 'Start counting!'
-            : count > 0
-            ? `${count} above zero`
-            : `${Math.abs(count)} below zero`}
-        </p>
-      </div>
-    </div>
-  )
+// Protected route wrapper
+function PrivateRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div style={{ display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--muted)' }}>Loading...</div>;
+  return user ? children : <Navigate to="/login" replace />;
 }
 
-export default App
+// Public route (redirect if already logged in)
+function PublicRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user ? <Navigate to="/" replace /> : children;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Navbar />
+        <Routes>
+          {/* Public */}
+          <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+
+          {/* Protected */}
+          <Route path="/profile-setup" element={<PrivateRoute><ProfileSetup /></PrivateRoute>} />
+          <Route path="/"              element={<PrivateRoute><Swipe /></PrivateRoute>} />
+          <Route path="/matches"       element={<PrivateRoute><Matches /></PrivateRoute>} />
+          <Route path="/chat/:matchId" element={<PrivateRoute><Chat /></PrivateRoute>} />
+          <Route path="/settings"      element={<PrivateRoute><Settings /></PrivateRoute>} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
